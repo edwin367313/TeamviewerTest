@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  teamviewer-server:
+    build: .
+    container_name: teamviewer-server
+    ports:
+      - "5900:5900"
+    environment:
+      - DISPLAY=:99
+    networks:
+      - teamviewer-network
+    restart: unless-stopped
+
+networks:
+  teamviewer-network:
+    driver: bridge
