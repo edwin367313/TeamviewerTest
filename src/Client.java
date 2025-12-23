@@ -13,15 +13,51 @@ public class Client {
     }
     
     /**
-     * Kết nối đến server
+     * Kết nối đến server (Direct IP)
      */
     public boolean connect(String host, int port) {
         try {
             socket = new Socket(host, port);
+            return setupStreams();
+        } catch (IOException e) {
+            System.err.println("Không thể kết nối đến server: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Kết nối qua Relay Server
+     */
+    public boolean connectRelay(String relayIp, int relayPort, String targetId) {
+        try {
+            socket = new Socket(relayIp, relayPort);
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+
+            // Gửi lệnh kết nối
+            dos.writeUTF("CONNECT " + targetId);
+
+            // Chờ phản hồi
+            String response = dis.readUTF();
+            if ("OK".equals(response)) {
+                System.out.println("Relay báo kết nối thành công tới " + targetId);
+                return setupStreams();
+            } else {
+                System.err.println("Relay từ chối: " + response);
+                socket.close();
+            }
+        } catch (IOException e) {
+            System.err.println("Lỗi kết nối Relay: " + e.getMessage());
+        }
+        return false;
+    }
+
+    private boolean setupStreams() {
+        try {
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
             
-            // Nhận client ID từ server
+            // Nhận client ID từ server (Handshake của ứng dụng)
             Message connectionMsg = (Message) in.readObject();
             if (connectionMsg.getType().equals("CONNECTION")) {
                 clientId = (String) connectionMsg.getData();
@@ -29,9 +65,8 @@ public class Client {
                 System.out.println("Đã kết nối đến server. Client ID: " + clientId);
                 return true;
             }
-            
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Không thể kết nối đến server: " + e.getMessage());
+            System.err.println("Lỗi thiết lập stream: " + e.getMessage());
         }
         return false;
     }
@@ -39,13 +74,14 @@ public class Client {
     /**
      * Yêu cầu màn hình từ server
      */
-    public void requestScreen() {
+    public synchronized void requestScreen() {
         if (!connected) return;
         
         try {
             Message request = new Message("REQUEST_SCREEN", null);
             out.writeObject(request);
             out.flush();
+            out.reset(); // Tránh cache object
         } catch (IOException e) {
             System.err.println("Lỗi yêu cầu màn hình: " + e.getMessage());
         }
@@ -54,13 +90,14 @@ public class Client {
     /**
      * Gửi sự kiện chuột
      */
-    public void sendMouseEvent(MouseEventData mouseData) {
+    public synchronized void sendMouseEvent(MouseEventData mouseData) {
         if (!connected) return;
         
         try {
             Message message = new Message("MOUSE_EVENT", mouseData);
             out.writeObject(message);
             out.flush();
+            out.reset(); // Tránh cache object
         } catch (IOException e) {
             System.err.println("Lỗi gửi sự kiện chuột: " + e.getMessage());
         }
@@ -69,13 +106,14 @@ public class Client {
     /**
      * Gửi sự kiện bàn phím
      */
-    public void sendKeyboardEvent(KeyboardEventData keyData) {
+    public synchronized void sendKeyboardEvent(KeyboardEventData keyData) {
         if (!connected) return;
         
         try {
             Message message = new Message("KEYBOARD_EVENT", keyData);
             out.writeObject(message);
             out.flush();
+            out.reset(); // Tránh cache object
         } catch (IOException e) {
             System.err.println("Lỗi gửi sự kiện bàn phím: " + e.getMessage());
         }

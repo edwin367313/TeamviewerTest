@@ -17,9 +17,13 @@ public class TeamViewerGUI extends JFrame {
     private Server server;
     private Thread serverThread;
     
+    // Relay Server components
+    private JCheckBox useRelayCheckBox;
+    private JTextField relayIpField;
+    
     public TeamViewerGUI() {
         setTitle("TeamViewer 2.0");
-        setSize(600, 400);
+        setSize(600, 500); // Tăng chiều cao để chứa thêm setting
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -32,18 +36,22 @@ public class TeamViewerGUI extends JFrame {
         mainPanel.setLayout(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Panel trên - Cho phép điều khiển từ xa
+        // Panel cấu hình Relay (Mới)
+        JPanel settingsPanel = createSettingsPanel();
+        mainPanel.add(settingsPanel, BorderLayout.NORTH);
+
+        // Center Panel chứa Control và Wait
+        JPanel centerPanel = new JPanel(new GridLayout(2, 1, 10, 10));
+        
+        // Panel điều khiển từ xa
         JPanel controlPanel = createControlPanel();
+        centerPanel.add(controlPanel);
         
-        // Panel dưới - Chờ kết nối
+        // Panel chờ kết nối
         JPanel waitPanel = createWaitPanel();
+        centerPanel.add(waitPanel);
         
-        // Tách đôi màn hình
-        JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, controlPanel, waitPanel);
-        splitPane.setDividerLocation(150);
-        splitPane.setResizeWeight(0.4);
-        
-        mainPanel.add(splitPane, BorderLayout.CENTER);
+        mainPanel.add(centerPanel, BorderLayout.CENTER);
         
         // Status bar
         JPanel statusPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -53,6 +61,35 @@ public class TeamViewerGUI extends JFrame {
         mainPanel.add(statusPanel, BorderLayout.SOUTH);
         
         add(mainPanel);
+    }
+
+    private JPanel createSettingsPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panel.setBorder(BorderFactory.createTitledBorder("Cấu hình mạng"));
+        
+        useRelayCheckBox = new JCheckBox("Sử dụng Relay Server (Docker)");
+        useRelayCheckBox.addActionListener(e -> updateUIState());
+        panel.add(useRelayCheckBox);
+        
+        panel.add(new JLabel("Relay IP:"));
+        relayIpField = new JTextField("localhost", 10);
+        relayIpField.setEnabled(false);
+        panel.add(relayIpField);
+        
+        return panel;
+    }
+
+    private void updateUIState() {
+        boolean useRelay = useRelayCheckBox.isSelected();
+        relayIpField.setEnabled(useRelay);
+        
+        if (useRelay) {
+            // Nếu dùng Relay, ID sẽ được sinh ngẫu nhiên khi Start Server
+            yourIdLabel.setText("Nhấn Start Server...");
+        } else {
+            // Nếu dùng LAN, hiện IP máy
+            initServer();
+        }
     }
     
     private JPanel createControlPanel() {
@@ -122,6 +159,8 @@ public class TeamViewerGUI extends JFrame {
     }
     
     private void initServer() {
+        if (useRelayCheckBox != null && useRelayCheckBox.isSelected()) return;
+        
         try {
             // Lấy địa chỉ IP local
             String ipAddress = java.net.InetAddress.getLocalHost().getHostAddress();
@@ -148,10 +187,21 @@ public class TeamViewerGUI extends JFrame {
         connectButton.setText("Đang kết nối...");
         statusLabel.setText("Đang kết nối đến " + partnerId + "...");
         
+        boolean useRelay = useRelayCheckBox.isSelected();
+        String relayIp = relayIpField.getText().trim();
+
         // Kết nối trong thread riêng
         new Thread(() -> {
             client = new Client();
-            if (client.connect(partnerId, 5900)) {
+            boolean success;
+            
+            if (useRelay) {
+                success = client.connectRelay(relayIp, 5900, partnerId);
+            } else {
+                success = client.connect(partnerId, 5900);
+            }
+
+            if (success) {
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText("Đã kết nối!");
                     openRemoteDesktop();
@@ -179,24 +229,35 @@ public class TeamViewerGUI extends JFrame {
     }
     
     private void startServer() {
+        boolean useRelay = useRelayCheckBox.isSelected();
+        String relayIp = relayIpField.getText().trim();
+        
         serverThread = new Thread(() -> {
             server = new Server();
             try {
                 SwingUtilities.invokeLater(() -> {
                     startServerButton.setText("Dừng Server");
                     startServerButton.setBackground(new Color(200, 0, 0));
-                    statusLabel.setText("Server đang chạy, chờ kết nối...");
+                    statusLabel.setText(useRelay ? "Đang kết nối Relay..." : "Server đang chạy...");
                 });
                 
-                server.start();
+                if (useRelay) {
+                    // Sinh ID ngẫu nhiên 6 số
+                    String myId = String.format("%06d", new java.util.Random().nextInt(999999));
+                    SwingUtilities.invokeLater(() -> yourIdLabel.setText(myId));
+                    server.startRelay(relayIp, 5900, myId);
+                } else {
+                    server.startLAN();
+                }
                 
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this, 
-                        "Không thể khởi động server: " + e.getMessage(), 
+                        "Lỗi server: " + e.getMessage(), 
                         "Lỗi", 
                         JOptionPane.ERROR_MESSAGE);
                     statusLabel.setText("Lỗi khởi động server");
+                    stopServer(); // Reset UI
                 });
             }
         });

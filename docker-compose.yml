@@ -1,17 +1,15 @@
 version: '3.8'
 
 services:
-  teamviewer-server:
+  teamviewer-relay:
     build: .
-    container_name: teamviewer-server
+    container_name: teamviewer-relay
     ports:
       - "5900:5900"
-    environment:
-      - DISPLAY=:99
-    networks:
-      - teamviewer-network
     restart: unless-stopped
+    networks:
+      - teamviewer-net
 
 networks:
-  teamviewer-network:
+  teamviewer-net:
     driver: bridge

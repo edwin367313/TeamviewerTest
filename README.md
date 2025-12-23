@@ -1,127 +1,54 @@
-# TeamViewer 2.0 - Ứng dụng Điều khiển Từ xa
+# TeamViewer 2.0 (Java Socket Project)
 
-## Mô tả
-TeamViewer 2.0 là ứng dụng điều khiển máy tính từ xa được viết bằng Java, sử dụng mô hình Client-Server. Ứng dụng cho phép xem và điều khiển màn hình của máy tính khác qua mạng.
+Dự án mô phỏng phần mềm điều khiển máy tính từ xa TeamViewer, sử dụng Java Socket và mô hình Relay Server.
 
 ## Tính năng
-
-### 🖥️ Điều khiển từ xa
-- Xem màn hình máy tính từ xa theo thời gian thực
-- Điều khiển chuột và bàn phím từ xa
-- Hỗ trợ chuột trái, phải, giữa và cuộn chuột
-- Gửi phím tắt (Ctrl+Alt+Del, v.v.)
-
-### 🔌 Kết nối
-- Kết nối dựa trên địa chỉ IP
-- Tự động tạo ID cho mỗi máy
-- Hỗ trợ nhiều client đồng thời
-- Tự động ngắt kết nối khi đóng ứng dụng
-
-### 🎨 Giao diện
-- Giao diện đồ họa giống TeamViewer
-- Hiển thị FPS (Frames Per Second)
-- Tùy chọn thu phóng màn hình
-- Thanh công cụ với các chức năng thường dùng
-
-## Cấu trúc dự án
-
-```
-teamviewer2.0/
-├── Server.java              # Server chính
-├── ClientHandler.java       # Xử lý client
-├── Client.java              # Client kết nối
-├── TeamViewerGUI.java       # Giao diện chính
-├── RemoteDesktopGUI.java    # Giao diện điều khiển từ xa
-├── ScreenCapture.java       # Chụp màn hình
-├── ScreenReceiver.java      # Nhận dữ liệu màn hình
-├── RemoteController.java    # Điều khiển chuột/bàn phím
-├── Message.java             # Định dạng message
-├── MouseEventData.java      # Dữ liệu sự kiện chuột
-└── KeyboardEventData.java   # Dữ liệu sự kiện bàn phím
-```
+- Điều khiển chuột và bàn phím từ xa.
+- Xem màn hình thời gian thực (Screen Sharing).
+- Hỗ trợ 2 chế độ kết nối:
+  1. **LAN Mode (P2P):** Kết nối trực tiếp qua IP.
+  2. **Relay Mode (Docker):** Kết nối qua Server trung gian, hỗ trợ vượt tường lửa/NAT.
 
 ## Yêu cầu hệ thống
+- Java Development Kit (JDK) 8 trở lên.
+- Docker (nếu muốn chạy Relay Server).
 
-- Java Development Kit (JDK) 8 trở lên
-- Windows/Linux/MacOS
-- Kết nối mạng LAN hoặc Internet
+## Cấu trúc dự án
+- `src/`: Chứa mã nguồn Java (`Client.java`, `Server.java`, `RelayServer.java`, ...).
+- `bin/`: Chứa các file `.class` sau khi biên dịch.
+- `compile.bat`: Script biên dịch.
+- `run.bat`: Script chạy ứng dụng.
+- `docker-run.bat`: Script chạy Relay Server trên Docker.
+- `Dockerfile`: Cấu hình Docker cho Relay Server.
 
-## Cách sử dụng
+## Hướng dẫn cài đặt & Chạy
 
-### 1. Biên dịch ứng dụng
+### Bước 1: Biên dịch mã nguồn
+Chạy file `compile.bat` để biên dịch toàn bộ project.
 
-```bash
-javac *.java
-```
+### Bước 2: Chạy Relay Server (Khuyên dùng)
+Để các máy có thể kết nối với nhau dễ dàng mà không cần biết IP, hãy chạy Relay Server trên Docker.
+1. Cài đặt Docker Desktop.
+2. Chạy file `docker-run.bat`.
+3. Server sẽ lắng nghe tại port `5900`.
 
-### 2. Chạy ứng dụng
+### Bước 3: Chạy ứng dụng TeamViewer
+Chạy file `run.bat` trên cả 2 máy tính.
 
-**Chạy giao diện chính:**
-```bash
-java TeamViewerGUI
-```
+#### Kịch bản 1: Máy bị điều khiển (Host)
+1. Mở ứng dụng.
+2. Tích chọn **"Sử dụng Relay Server (Docker)"**.
+3. Nhập IP của máy chạy Docker (nếu chạy cùng máy thì để `localhost`).
+4. Nhấn **"Khởi động Server"**.
+5. Gửi **ID** (6 số) hiện trên màn hình cho đối tác.
 
-**Hoặc chạy riêng Server:**
-```bash
-java Server
-```
+#### Kịch bản 2: Máy điều khiển (Client)
+1. Mở ứng dụng.
+2. Tích chọn **"Sử dụng Relay Server (Docker)"**.
+3. Nhập IP của máy chạy Docker.
+4. Nhập **ID đối tác** vào ô bên trên.
+5. Nhấn **"Kết nối"**.
 
-### 3. Kết nối
-
-#### Máy chủ (Máy bị điều khiển):
-1. Chạy TeamViewerGUI
-2. Nhấn "Khởi động Server"
-3. Copy địa chỉ IP hiển thị trong "ID của bạn"
-4. Gửi ID này cho người muốn điều khiển
-
-#### Máy khách (Máy điều khiển):
-1. Chạy TeamViewerGUI
-2. Nhập ID đối tác vào ô "ID đối tác"
-3. Nhấn "Kết nối"
-4. Cửa sổ điều khiển từ xa sẽ mở ra
-
-## Cổng mạng
-
-Ứng dụng sử dụng **cổng 5900** (cổng VNC tiêu chuẩn)
-
-## Bảo mật
-
-⚠️ **Lưu ý**: Đây là phiên bản demo cho mục đích học tập. Trong môi trường sản xuất, cần thêm:
-- Mã hóa dữ liệu (SSL/TLS)
-- Xác thực người dùng (password/token)
-- Giới hạn quyền truy cập
-- Logging và monitoring
-
-## Khắc phục sự cố
-
-### Không kết nối được
-- Kiểm tra firewall có chặn cổng 5900 không
-- Đảm bảo hai máy trong cùng mạng hoặc có thể ping được nhau
-- Kiểm tra địa chỉ IP nhập đúng chưa
-
-### Màn hình lag
-- Giảm độ phân giải màn hình
-- Cải thiện kết nối mạng
-- Đóng các ứng dụng đang chạy không cần thiết
-
-### Lỗi Robot class
-- Chạy với quyền administrator/root
-- Kiểm tra Java có quyền điều khiển hệ thống không
-
-## Phát triển thêm
-
-Có thể mở rộng với:
-- Chat giữa client và server
-- Truyền file
-- Ghi âm/ghi hình phiên làm việc
-- Hỗ trợ nhiều màn hình
-- Nén dữ liệu để tăng tốc độ
-- Mã hóa kết nối
-
-## Giấy phép
-
-Dự án học tập - Sử dụng tự do cho mục đích giáo dục
-
-## Tác giả
-
-Bài tập Lập trình mạng - TeamViewer 2.0
+## Lưu ý
+- Nếu chạy trong mạng LAN mà không có Docker, bạn có thể bỏ chọn "Sử dụng Relay Server" và nhập IP trực tiếp của máy kia để kết nối.
+- Hiệu năng truyền hình ảnh phụ thuộc vào tốc độ mạng.

@@ -5,7 +5,8 @@ echo ========================================
 echo.
 
 echo Dang bien dich cac file Java...
-javac -encoding UTF-8 *.java
+if not exist bin mkdir bin
+javac -encoding UTF-8 -d bin -sourcepath src src/*.java
 
 if %errorlevel% equ 0 (
     echo.
@@ -14,7 +15,8 @@ if %errorlevel% equ 0 (
     echo ========================================
     echo.
     echo Co the chay ung dung bang lenh:
-    echo   java TeamViewerGUI
+    echo   1. Chay Client/Server: run.bat
+    echo   2. Chay Relay Server (Docker): docker-run.bat
     echo.
 ) else (
     echo.
