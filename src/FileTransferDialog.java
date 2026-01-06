@@ -5,17 +5,19 @@ import java.util.*;
 
 /**
  * Dialog hiển thị tiến trình truyền file
+ * Changed to JFrame to support minimize button
  */
-public class FileTransferDialog extends JDialog {
+public class FileTransferDialog extends JFrame {
     private JPanel transfersPanel;
     private Map<String, TransferItem> transferItems;
     
     public FileTransferDialog(Frame parent) {
-        super(parent, "File Transfers", false);
+        super("File Transfers");
         transferItems = new HashMap<>();
         initComponents();
         setSize(500, 400);
         setLocationRelativeTo(parent);
+        setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     }
     
     private void initComponents() {

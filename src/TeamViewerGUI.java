@@ -10,12 +10,14 @@ public class TeamViewerGUI extends JFrame {
     private JTextField partnerIdField;
     private JButton connectButton;
     private JButton startServerButton;
+    private JButton sendFileButton;
     private JLabel yourIdLabel;
     private JLabel statusLabel;
     private JPanel mainPanel;
     private Client client;
     private Server server;
     private Thread serverThread;
+    private FileTransferManager fileTransferManager;
     
     // Relay Server components
     private JCheckBox useRelayCheckBox;
@@ -23,7 +25,7 @@ public class TeamViewerGUI extends JFrame {
     
     public TeamViewerGUI() {
         setTitle("TeamViewer 2.0");
-        setSize(600, 500); // Tăng chiều cao để chứa thêm setting
+        setSize(600, 550);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -111,6 +113,14 @@ public class TeamViewerGUI extends JFrame {
         idPanel.add(connectButton);
         
         panel.add(idPanel);
+        
+        // File transfer button
+        JPanel filePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        sendFileButton = new JButton("📁 Gửi File");
+        sendFileButton.setEnabled(false);
+        sendFileButton.addActionListener(e -> sendFile());
+        filePanel.add(sendFileButton);
+        panel.add(filePanel);
         
         // Description
         JLabel descLabel = new JLabel("<html><i>Nhập ID đối tác để kết nối và điều khiển máy tính của họ</i></html>");
@@ -204,6 +214,8 @@ public class TeamViewerGUI extends JFrame {
             if (success) {
                 SwingUtilities.invokeLater(() -> {
                     statusLabel.setText("Đã kết nối!");
+                    sendFileButton.setEnabled(true);
+                    fileTransferManager = new FileTransferManager(client);
                     openRemoteDesktop();
                 });
             } else {
@@ -218,6 +230,37 @@ public class TeamViewerGUI extends JFrame {
                 });
             }
         }).start();
+    }
+    
+    private void sendFile() {
+        if (client == null || !client.isConnected()) {
+            JOptionPane.showMessageDialog(this,
+                "Chưa kết nối đến đối tác!",
+                "Lỗi",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Chọn file để gửi");
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            java.io.File selectedFile = fileChooser.getSelectedFile();
+            
+            if (selectedFile.length() > 100 * 1024 * 1024) {
+                JOptionPane.showMessageDialog(this,
+                    "File quá lớn! Giới hạn 100MB.",
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (fileTransferManager != null) {
+                fileTransferManager.sendFile(selectedFile);
+                statusLabel.setText("Đang gửi file: " + selectedFile.getName());
+            }
+        }
     }
     
     private void toggleServer() {
@@ -278,19 +321,23 @@ public class TeamViewerGUI extends JFrame {
         RemoteDesktopGUI remoteGUI = new RemoteDesktopGUI(client);
         remoteGUI.setVisible(true);
         
-        // Ẩn cửa sổ chính
-        this.setVisible(false);
+        // KHÔNG ẨN cửa sổ chính để có thể gửi file
+        // this.setVisible(false);
         
-        // Khi đóng remote desktop, hiện lại cửa sổ chính
+        // Khi đóng remote desktop, reset trạng thái
         remoteGUI.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosed(WindowEvent e) {
-                client.disconnect();
-                client = null;
+                if (client != null) {
+                    client.disconnect();
+                    client = null;
+                }
+                fileTransferManager = null;
                 connectButton.setEnabled(true);
                 connectButton.setText("Kết nối");
+                sendFileButton.setEnabled(false);
                 statusLabel.setText("Đã ngắt kết nối");
-                TeamViewerGUI.this.setVisible(true);
+                TeamViewerGUI.this.toFront();
             }
         });
     }
