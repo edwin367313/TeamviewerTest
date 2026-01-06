@@ -22,7 +22,6 @@ public class RemoteDesktopGUI extends JFrame {
     private FileTransferManager fileTransferManager;
     private FileTransferDialog fileTransferDialog;
     private KeyEventDispatcher globalKeyListener;
-    private CollapsibleChatPanel chatPanel;
     private boolean isFitToWindow = false;
     
     public RemoteDesktopGUI(Client client) {
@@ -53,56 +52,9 @@ public class RemoteDesktopGUI extends JFrame {
     }
     
     private void handleWindowClosing() {
-        // Kiểm tra nếu có chat history, hỏi có muốn save không
-        if (chatPanel != null && chatPanel.hasChatContent()) {
-            int option = JOptionPane.showConfirmDialog(
-                this,
-                "Bạn có muốn lưu lịch sử chat không?",
-                "Lưu lịch sử chat",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-            );
-            
-            if (option == JOptionPane.YES_OPTION) {
-                saveChatBeforeClose();
-            }
-        }
-        
         // Dọn dẹp resources
         stopScreenReceiver();
         removeGlobalKeyListener();
-    }
-    
-    private void saveChatBeforeClose() {
-        JFileChooser fileChooser = new JFileChooser();
-        
-        // Tên file mặc định
-        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss");
-        String defaultFileName = "chat_" + client.getClientId() + "_" + 
-                                sdf.format(new java.util.Date()) + ".txt";
-        fileChooser.setSelectedFile(new File(defaultFileName));
-        
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
-            
-            // Thêm .txt nếu chưa có extension
-            if (!file.getName().toLowerCase().endsWith(".txt")) {
-                file = new File(file.getAbsolutePath() + ".txt");
-            }
-            
-            try (java.io.BufferedWriter writer = new java.io.BufferedWriter(new java.io.FileWriter(file))) {
-                writer.write(chatPanel.getChatHistory());
-                JOptionPane.showMessageDialog(this,
-                    "Đã lưu lịch sử chat vào:\n" + file.getAbsolutePath(),
-                    "Thành công",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (java.io.IOException ex) {
-                JOptionPane.showMessageDialog(this,
-                    "Lỗi khi lưu file: " + ex.getMessage(),
-                    "Lỗi",
-                    JOptionPane.ERROR_MESSAGE);
-            }
-        }
     }
     
     private void initComponents() {
@@ -122,11 +74,6 @@ public class RemoteDesktopGUI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(screenLabel);
         scrollPane.setPreferredSize(new Dimension(800, 600));
         screenPanel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Chat panel ở góc dưới
-        chatPanel = new CollapsibleChatPanel(client.getClientId(), 
-            message -> sendChatMessage(message));
-        screenPanel.add(chatPanel, BorderLayout.SOUTH);
         
         add(screenPanel, BorderLayout.CENTER);
         
@@ -557,25 +504,5 @@ public class RemoteDesktopGUI extends JFrame {
     /**
      * Gửi chat message
      */
-    private void sendChatMessage(String message) {
-        if (message == null || message.trim().isEmpty()) {
-            return;
-        }
-        
-        ChatData chatData = new ChatData(client.getClientId(), message, System.currentTimeMillis());
-        Message chatMessage = new Message("CHAT_MESSAGE", chatData);
-        client.sendMessage(chatMessage);
-        
-        // Hiển thị message của chính mình
-        handleChatMessage(chatData);
-    }
-    
-    /**
-     * Xử lý chat message nhận được
-     */
-    public void handleChatMessage(ChatData chatData) {
-        if (chatPanel != null) {
-            chatPanel.appendMessage(chatData);
-        }
-    }
+
 }

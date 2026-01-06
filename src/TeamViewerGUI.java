@@ -18,6 +18,7 @@ public class TeamViewerGUI extends JFrame {
     private Server server;
     private Thread serverThread;
     private FileTransferManager fileTransferManager;
+    private ServerPreviewGUI serverPreviewGUI;
     
     // Relay Server components
     private JCheckBox useRelayCheckBox;
@@ -275,6 +276,12 @@ public class TeamViewerGUI extends JFrame {
         boolean useRelay = useRelayCheckBox.isSelected();
         String relayIp = relayIpField.getText().trim();
         
+        // Khởi tạo ServerPreviewGUI
+        if (serverPreviewGUI == null) {
+            serverPreviewGUI = new ServerPreviewGUI();
+        }
+        serverPreviewGUI.setVisible(true);
+        
         serverThread = new Thread(() -> {
             server = new Server();
             try {
@@ -311,6 +318,9 @@ public class TeamViewerGUI extends JFrame {
         if (server != null) {
             server.stop();
             server = null;
+        }
+        if (serverPreviewGUI != null) {
+            serverPreviewGUI.showDisconnected();
         }
         startServerButton.setText("Khởi động Server");
         startServerButton.setBackground(new Color(0, 128, 0));

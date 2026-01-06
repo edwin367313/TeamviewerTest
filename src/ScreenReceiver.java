@@ -43,15 +43,17 @@ public class ScreenReceiver implements Runnable {
                             gui.updateScreen(image);
                         }
                     } else if (message.getType().equals("FILE_TRANSFER")) {
-                        // Xử lý file transfer
+                        // Chỉ xử lý ACCEPT/REJECT response từ Server
                         if (fileTransferManager != null) {
                             FileTransferData data = (FileTransferData) message.getData();
-                            fileTransferManager.handleFileTransfer(data);
+                            String transferType = data.getTransferType();
+                            
+                            // Client chỉ nhận ACCEPT hoặc REJECT response
+                            if ("ACCEPT".equals(transferType) || "REJECT".equals(transferType)) {
+                                fileTransferManager.handleFileTransfer(data);
+                            }
+                            // Bỏ qua START message (không nên nhận được)
                         }
-                    } else if (message.getType().equals("CHAT_MESSAGE")) {
-                        // Xử lý chat message
-                        ChatData chatData = (ChatData) message.getData();
-                        gui.handleChatMessage(chatData);
                     }
                 }
                 
