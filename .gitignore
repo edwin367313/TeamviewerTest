@@ -22,7 +22,8 @@ ngrok/
 ngrok.zip
 
 # IDE
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 *.iml
 
