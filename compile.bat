@@ -6,9 +6,17 @@ echo.
 
 echo Dang bien dich cac file Java...
 if not exist bin mkdir bin
-javac -encoding UTF-8 -d bin -sourcepath src src\*.java
+javac -encoding UTF-8 -d bin src\*.java
 
-if %errorlevel% equ 0 (
+if errorlevel 1 (
+    echo.
+    echo ========================================
+    echo   Loi bien dich!
+    echo ========================================
+    echo Vui long kiem tra lai code.
+    echo.
+    exit /b 1
+) else (
     echo.
     echo ========================================
     echo   Bien dich thanh cong!
@@ -16,15 +24,6 @@ if %errorlevel% equ 0 (
     echo.
     echo Co the chay ung dung bang lenh:
     echo   1. Chay Client/Server: run.bat
-    echo   2. Chay Relay Server (Docker): docker-run.bat
-    echo.
-) else (
-    echo.
-    echo ========================================
-    echo   Loi bien dich!
-    echo ========================================
-    echo Vui long kiem tra lai code.
+    echo   2. Chay All-in-One: run-all.bat
     echo.
 )
-
-pause
