@@ -1,8 +1,5 @@
 import java.io.Serializable;
 
-/**
- * Class đại diện cho message trao đổi giữa client và server
- */
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
     

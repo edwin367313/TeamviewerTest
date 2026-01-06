@@ -120,6 +120,21 @@ public class Client {
     }
     
     /**
+     * Gửi message tổng quát
+     */
+    public synchronized void sendMessage(Message message) {
+        if (!connected) return;
+        
+        try {
+            out.writeObject(message);
+            out.flush();
+            out.reset(); // Tránh cache object
+        } catch (IOException e) {
+            System.err.println("Lỗi gửi message: " + e.getMessage());
+        }
+    }
+    
+    /**
      * Nhận dữ liệu màn hình
      */
     public Message receiveMessage() {

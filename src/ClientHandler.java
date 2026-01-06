@@ -56,6 +56,18 @@ public class ClientHandler implements Runnable {
                 remoteController.handleKeyboardEvent(message.getData());
                 break;
                 
+            case "FILE_TRANSFER":
+                // Chuyển tiếp message FILE_TRANSFER nguyên vẹn
+                out.writeObject(message);
+                out.flush();
+                break;
+                
+            case "CHAT_MESSAGE":
+                // Chuyển tiếp message CHAT nguyên vẹn
+                out.writeObject(message);
+                out.flush();
+                break;
+                
             case "DISCONNECT":
                 disconnect();
                 break;
