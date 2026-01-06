@@ -6,7 +6,7 @@ echo.
 
 echo Dang bien dich cac file Java...
 if not exist bin mkdir bin
-javac -encoding UTF-8 -d bin -sourcepath src src/*.java
+javac -encoding UTF-8 -d bin -sourcepath src src\*.java
 
 if %errorlevel% equ 0 (
     echo.
