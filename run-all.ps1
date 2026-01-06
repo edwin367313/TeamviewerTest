@@ -1,6 +1,4 @@
-# ========================================
-#   TeamViewer 2.0 - Run All Script (PowerShell)
-# ========================================
+
 
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
@@ -33,11 +31,8 @@ Write-Host "[3/3] Khoi dong Server va Client..." -ForegroundColor Yellow
 Write-Host ""
 
 # Chạy Server trong terminal riêng
-Start-Process powershell -ArgumentList @(
-    "-NoExit",
-    "-Command",
-    "Write-Host '========== TeamViewer Server ==========' -ForegroundColor Green; Set-Location '$scriptPath'; java -cp bin Server"
-) -WindowStyle Normal
+$serverCmd = "Write-Host '========== TeamViewer Server ==========' -ForegroundColor Green; Set-Location '$scriptPath'; java -cp bin Server"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", $serverCmd -WindowStyle Normal
 
 Write-Host "- Server dang khoi dong..." -ForegroundColor Green
 
@@ -45,11 +40,8 @@ Write-Host "- Server dang khoi dong..." -ForegroundColor Green
 Start-Sleep -Seconds 3
 
 # Chạy Client trong terminal riêng
-Start-Process powershell -ArgumentList @(
-    "-NoExit",
-    "-Command",
-    "Write-Host '========== TeamViewer Client ==========' -ForegroundColor Cyan; Set-Location '$scriptPath'; java -cp bin TeamViewerGUI"
-) -WindowStyle Normal
+$clientCmd = "Write-Host '========== TeamViewer Client ==========' -ForegroundColor Cyan; Set-Location '$scriptPath'; java -cp bin TeamViewerGUI"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", $clientCmd -WindowStyle Normal
 
 Write-Host "- Client dang khoi dong..." -ForegroundColor Cyan
 
