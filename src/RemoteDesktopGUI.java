@@ -314,15 +314,16 @@ public class RemoteDesktopGUI extends JFrame {
                     KeyboardEventData keyData = new KeyboardEventData("RELEASE", e.getKeyCode());
                     client.sendKeyboardEvent(keyData);
                     return false;
-                } else if (id == KeyEvent.KEY_TYPED) {
-                    // Gửi ký tự đã type (hỗ trợ Unicode)
-                    char typedChar = e.getKeyChar();
-                    if (typedChar != KeyEvent.CHAR_UNDEFINED && !Character.isISOControl(typedChar)) {
-                        KeyboardEventData keyData = new KeyboardEventData("TYPED", 0, typedChar);
-                        client.sendKeyboardEvent(keyData);
-                    }
-                    return false;
                 }
+                // TẮT KEY_TYPED để tránh lag - chỉ dùng PRESS/RELEASE
+                // else if (id == KeyEvent.KEY_TYPED) {
+                //     char typedChar = e.getKeyChar();
+                //     if (typedChar != KeyEvent.CHAR_UNDEFINED && !Character.isISOControl(typedChar)) {
+                //         KeyboardEventData keyData = new KeyboardEventData("TYPED", 0, typedChar);
+                //         client.sendKeyboardEvent(keyData);
+                //     }
+                //     return false;
+                // }
                 
                 return false;
             }

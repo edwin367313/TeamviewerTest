@@ -156,9 +156,15 @@ public class FileTransferManager {
                 JOptionPane.YES_NO_OPTION);
             
             if (result == JOptionPane.YES_OPTION) {
-                // Chọn nơi lưu
+                // Chọn nơi lưu - Mặc định lưu vào Downloads folder
                 JFileChooser fileChooser = new JFileChooser();
+                String userHome = System.getProperty("user.home");
+                File downloadsFolder = new File(userHome, "Downloads");
+                if (downloadsFolder.exists()) {
+                    fileChooser.setCurrentDirectory(downloadsFolder);
+                }
                 fileChooser.setSelectedFile(new File(fileName));
+                fileChooser.setDialogTitle("Save File - " + fileName);
                 
                 if (fileChooser.showSaveDialog(null) == JFileChooser.APPROVE_OPTION) {
                     File saveFile = fileChooser.getSelectedFile();
