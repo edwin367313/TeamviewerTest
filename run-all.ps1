@@ -33,7 +33,6 @@ Write-Host "[3/3] Khoi dong Server va Client..." -ForegroundColor Yellow
 Write-Host ""
 
 # Chạy Server trong terminal riêng
-$serverTitle = "TeamViewer Server"
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
@@ -46,7 +45,6 @@ Write-Host "- Server dang khoi dong..." -ForegroundColor Green
 Start-Sleep -Seconds 3
 
 # Chạy Client trong terminal riêng
-$clientTitle = "TeamViewer Client"
 Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
